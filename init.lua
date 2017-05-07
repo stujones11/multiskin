@@ -144,6 +144,15 @@ minetest.register_on_joinplayer(function(player)
 	end, player)
 end)
 
+minetest.register_on_leaveplayer(function(player)
+	local name = player:get_player_name()
+	if name then
+		player_skins[name] = nil
+		player_format[name] = nil
+		player_textures[name] = nil
+	end
+end)
+
 minetest.register_on_player_receive_fields(function(player, formname, fields)
 	local name = player:get_player_name()
 	for field, _ in pairs(fields) do
