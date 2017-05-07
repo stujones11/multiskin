@@ -1,0 +1,1 @@
+Place your player skins here named as `player_<player_name>.png`

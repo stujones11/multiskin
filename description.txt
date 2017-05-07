@@ -1,0 +1,2 @@
+Dual skin format player model.
+Supports minecraft 1.0 and 1.8 skin formats on a per-player basis.
