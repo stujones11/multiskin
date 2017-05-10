@@ -4,8 +4,8 @@ local default_skin = minetest.setting_get("multiskin_skin") or "character.png"
 local default_format = minetest.setting_get("multiskin_format") or "1.0"
 local player_skins = {}
 local player_format = {}
-local player_preview = {}
 local player_textures = {}
+local skin_previews = {}
 
 -- 3rd party skin-switcher support
 -- may be removed from future versions as these mods do not
@@ -19,7 +19,7 @@ for _, mod in pairs(skin_mods) do
 		local dir_list = minetest.get_dir_list(path.."/textures")
 		for _, fn in pairs(dir_list) do
 			if fn:find("_preview.png$") then
-				player_preview[fn] = true
+				skin_previews[fn] = true
 			end
 		end
 		skin_mod = mod
@@ -71,7 +71,7 @@ multiskin.set_player_format = function(player, format)
 end
 
 multiskin.add_preview = function(texture)
-	player_preview[texture] = true
+	skin_previews[texture] = true
 end
 
 multiskin.get_preview = function(player)
@@ -82,13 +82,16 @@ multiskin.get_preview = function(player)
 end
 
 multiskin.update_player_visuals = function(player)
+	local name = player:get_player_name()
+	if not name or not player_skins[name] then
+		return
+	end
 	local anim = default.player_get_animation(player) or {}
 	if anim.model == "character.b3d" then
 		default.player_set_model(player, multiskin.model)
 	elseif anim.model ~= multiskin.model then
 		return
 	end
-	local name = player:get_player_name()
 	local textures = player_textures[name] or {}
 	local skin = player_skins[name].skin or "blank.png"
 	local layers = {}
