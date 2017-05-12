@@ -94,9 +94,10 @@ multiskin.update_player_visuals = function(player)
 	end
 	local textures = player_textures[name] or {}
 	local skin = player_skins[name].skin or "blank.png"
+	local cape = player_skins[name].cape
 	local layers = {}
 	for k, v in pairs(player_skins[name]) do
-		if k ~= "skin" then
+		if k ~= "skin" and k ~= "cape" then
 			table.insert(layers, v)
 		end
 	end
@@ -106,9 +107,12 @@ multiskin.update_player_visuals = function(player)
 		if overlay ~= "" then
 			skin = skin.."^"..overlay
 		end
-		textures[1] = "blank.png"
+		textures[1] = cape or "blank.png"
 		textures[2] = skin
 	else
+		if cape then
+			skin = skin.."^"..cape
+		end
 		if overlay == "" then
 			overlay = "blank.png"
 		end
