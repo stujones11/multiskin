@@ -6,11 +6,41 @@ local player_skins = {}
 local player_format = {}
 local player_textures = {}
 local skin_previews = {}
+local skin_format = {[default_skin]=default_format}
+
+local function get_skin_format(file)
+	file:seek("set", 1)
+	if file:read(3) == "PNG" then
+		file:seek("set", 16)
+		local ws = file:read(4)
+		local hs = file:read(4)
+		local w = ws:sub(3, 3):byte() * 256 + ws:sub(4, 4):byte()
+		local h = hs:sub(3, 3):byte() * 256 + hs:sub(4, 4):byte()
+		if w == h then
+			return "1.8"
+		elseif w == h * 2 then
+			return "1.0"
+		end
+	end
+end
+
+local dir_list = minetest.get_dir_list(modpath.."/textures")
+for _, fn in pairs(dir_list) do
+	local file = io.open(modpath.."/textures/"..fn, "rb")
+	if file then
+		skin_format[fn] = get_skin_format(file)
+		file:close()
+	end
+end
 
 -- 3rd party skin-switcher support
 -- may be removed from future versions as these mods do not
 -- use the proper api method for setting player textures
+--
+-- Auto skin format detection for 3rd party mods requires
+-- that multiskin is included in 'trusted mods'
 
+local env = minetest.request_insecure_environment()
 local skin_mod = modname
 local skin_mods = {"skins", "u_skins", "simple_skins", "wardrobe"}
 for _, mod in pairs(skin_mods) do
@@ -20,6 +50,12 @@ for _, mod in pairs(skin_mods) do
 		for _, fn in pairs(dir_list) do
 			if fn:find("_preview.png$") then
 				skin_previews[fn] = true
+			elseif env then
+				local file = env.io.open(path.."/textures/"..fn, "rb")
+				if file then
+					skin_format[fn] = get_skin_format(file)
+					file:close()
+				end
 			end
 		end
 		skin_mod = mod
@@ -51,6 +87,7 @@ local function get_player_skin(player)
 	end
 	return default_skin
 end
+env = nil
 
 multiskin = {
 	model = "multiskin.b3d",
@@ -60,6 +97,11 @@ multiskin = {
 
 multiskin.set_player_skin = function(player, skin)
 	local name = player:get_player_name()
+	local format = skin_format[skin]
+	if format then
+		player_format[name] = format
+		player:set_attribute("multiskin_format", format)
+	end
 	player_skins[name].skin = skin
 	player:set_attribute("multiskin_skin", skin)
 end
@@ -147,6 +189,7 @@ minetest.register_on_joinplayer(function(player)
 		player_textures[name] = anim.textures or {}
 		player_skins[name] = {skin=skin}
 		player_format[name] = player:get_attribute("multiskin_format")
+		multiskin.set_player_skin(player, skin)
 		multiskin.update_player_visuals(player)
 	end, player)
 end)
