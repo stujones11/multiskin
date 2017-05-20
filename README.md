@@ -1,4 +1,4 @@
-[mod] Multiskin [multiskin] [0.1.0]
+[mod] Multiskin [multiskin] [0.1.1]
 ===================================
 
 **Minetest Version:** 0.4.16
@@ -20,7 +20,7 @@ in conjuction with the multiskin default skins and chat commands.
 [mod] Unified Skins [u_skins] by SmallJoker
 [mod] Wardrobe [wardrobe] by prestidigitator
 ```
-Note that auto skin format dection is only available for these mods if
+Note that auto skin format detection is only available for these mods if
 the multiskin mod is listed in the `secure.trusted_mods` setting.
 
 Configuration
