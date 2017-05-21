@@ -1,5 +1,6 @@
 local modname = minetest.get_current_modname()
 local modpath = minetest.get_modpath(modname)
+local dir_list = minetest.get_dir_list(modpath.."/textures")
 local default_skin = minetest.setting_get("multiskin_skin") or "character.png"
 local default_format = minetest.setting_get("multiskin_format") or "1.0"
 local player_skins = {}
@@ -24,7 +25,6 @@ local function get_skin_format(file)
 	end
 end
 
-local dir_list = minetest.get_dir_list(modpath.."/textures")
 for _, fn in pairs(dir_list) do
 	local file = io.open(modpath.."/textures/"..fn, "rb")
 	if file then
@@ -61,6 +61,8 @@ for _, mod in pairs(skin_mods) do
 		skin_mod = mod
 	end
 end
+env = nil
+
 local function get_player_skin(player)
 	local name = player:get_player_name()
 	if name then
@@ -78,7 +80,6 @@ local function get_player_skin(player)
 		if skin then
 			return skin..".png"
 		end
-		local dir_list = minetest.get_dir_list(modpath.."/textures")
 		for _, fn in pairs(dir_list) do
 			if fn == "player_"..name..".png" then
 				return fn
@@ -87,7 +88,6 @@ local function get_player_skin(player)
 	end
 	return default_skin
 end
-env = nil
 
 multiskin = {
 	model = "multiskin.b3d",
