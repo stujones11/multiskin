@@ -119,9 +119,12 @@ multiskin.add_preview = function(texture)
 end
 
 multiskin.get_preview = function(player)
-	local preview = get_player_skin(player).."_preview.png"
-	if skin_previews[preview] then
-		return preview
+	local skin = player:get_attribute("multiskin_skin")
+	if skin then
+		local preview = skin:gsub(".png$", "_preview.png")
+		if skin_previews[preview] then
+			return preview
+		end
 	end
 end
 
