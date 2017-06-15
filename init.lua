@@ -27,44 +27,6 @@ local function get_skin_format(file)
 	end
 end
 
-for _, fn in pairs(dir_list) do
-	local file = io.open(modpath.."/textures/"..fn, "rb")
-	if file then
-		skin_format[fn] = get_skin_format(file)
-		file:close()
-	end
-end
-
--- 3rd party skin-switcher support
--- may be removed from future versions as these mods do not
--- use the proper api method for setting player textures
---
--- Auto skin format detection for 3rd party mods requires
--- that multiskin is included in 'trusted mods'
-
-local env = minetest.request_insecure_environment()
-local skin_mod = modname
-local skin_mods = {"skins", "u_skins", "simple_skins", "wardrobe"}
-for _, mod in pairs(skin_mods) do
-	local path = minetest.get_modpath(mod)
-	if path then
-		local dir_list = minetest.get_dir_list(path.."/textures")
-		for _, fn in pairs(dir_list) do
-			if fn:find("_preview.png$") then
-				skin_previews[fn] = true
-			elseif env then
-				local file = env.io.open(path.."/textures/"..fn, "rb")
-				if file then
-					skin_format[fn] = get_skin_format(file)
-					file:close()
-				end
-			end
-		end
-		skin_mod = mod
-	end
-end
-env = nil
-
 local function get_player_skin(player)
 	local name = player:get_player_name()
 	if name then
@@ -114,17 +76,14 @@ multiskin.set_player_format = function(player, format)
 	player:set_attribute("multiskin_format", format)
 end
 
-multiskin.add_preview = function(texture)
-	skin_previews[texture] = true
+multiskin.add_preview = function(skin, preview)
+	skin_previews[skin] = preview
 end
 
 multiskin.get_preview = function(player)
 	local skin = player:get_attribute("multiskin_skin")
 	if skin then
-		local preview = skin:gsub(".png$", "_preview.png")
-		if skin_previews[preview] then
-			return preview
-		end
+		return skin_previews[skin]
 	end
 end
 
@@ -262,3 +221,48 @@ minetest.register_chatcommand("multiskin", {
 		end
 	end,
 })
+
+-- get previews and skin formats for multiskin/textures located skins
+for _, fn in pairs(dir_list) do
+	local file = io.open(modpath.."/textures/"..fn, "rb")
+	if file then
+		if fn:find("_preview.png$") then
+			local skin = fn:gsub("_preview.png$", ".png$")
+			multiskin.add_preview(skin, fn)
+		else
+			skin_format[fn] = get_skin_format(file)
+		end
+		file:close()
+	end
+end
+
+-- 3rd party skin-switcher support
+-- may be removed from future versions as these mods do not
+-- use the proper api method for setting player textures
+--
+-- Auto skin format detection for 3rd party mods requires
+-- that multiskin is included in 'trusted mods'
+
+local env = minetest.request_insecure_environment()
+local skin_mod = modname
+local skin_mods = {"skins", "u_skins", "simple_skins", "wardrobe"}
+for _, mod in pairs(skin_mods) do
+	local path = minetest.get_modpath(mod)
+	if path then
+		local dir_list = minetest.get_dir_list(path.."/textures")
+		for _, fn in pairs(dir_list) do
+			if fn:find("_preview.png$") then
+				local skin = fn:gsub("_preview.png$", ".png$")
+				multiskin.add_preview(skin, fn)
+			elseif env then
+				local file = env.io.open(path.."/textures/"..fn, "rb")
+				if file then
+					skin_format[fn] = get_skin_format(file)
+				end
+				file:close()
+			end
+		end
+		skin_mod = mod
+	end
+end
+env = nil
